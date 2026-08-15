@@ -1,0 +1,27 @@
+# Build de CMake
+build/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+compile_commands.json
+
+# Binario
+screensaver
+
+# Objetos y librerías
+*.o
+*.a
+*.dylib
+*.so
+
+# macOS
+.DS_Store
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Resultados crudos de benchmark: se regeneran corriendo bench/.
+# Los CSV y gráficas que sí van al informe se versionan a mano en docs/.
+*.csv.tmp
