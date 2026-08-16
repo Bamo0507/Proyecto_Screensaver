@@ -36,19 +36,19 @@ add_executable(screensaver
     src/shared/config.cpp
     src/shared/timing.cpp
 
-    src/fondo/fondo.cpp
-    src/fondo/fondo_seq.cpp
-    src/fondo/fondo_par.cpp
+    src/background/background.cpp
+    src/background/background_seq.cpp
+    src/background/background_par.cpp
 
-    src/estrellas/estrellas.cpp
+    src/stars/stars.cpp
 
-    src/constelacion/constelacion.cpp
-    src/constelacion/aristas_seq.cpp
-    src/constelacion/aristas_par.cpp
+    src/constellation/constellation.cpp
+    src/constellation/edges_seq.cpp
+    src/constellation/edges_par.cpp
 
-    src/fugaces/fugaces.cpp
+    src/meteors/meteors.cpp
 
-    src/nave/nave.cpp
+    src/ship/ship.cpp
 )
 
 target_include_directories(screensaver PRIVATE ${CMAKE_SOURCE_DIR}/src)

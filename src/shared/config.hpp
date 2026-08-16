@@ -5,24 +5,27 @@
 // Toda la configuración de la corrida. Nada de esto se escribe en el código:
 // todo entra por CLI.
 struct Config {
-    int cantidadNodos = 0; // N posicional, obligatorio
-    bool paralelo = false; // --parallel
-    int hilos = 0; // --hilos T (0 = todos los que reporte OpenMP)
-    int secciones = 4; // --secciones S
-    int trozo = 32; // --trozo C (chunk de schedule dynamic)
-    float radio = 120.0f; // --radio R (distancia máxima para unir dos nodos)
-    int ancho = 1280; // --ancho W
-    int alto = 720; // --alto H
-    unsigned semilla = 42; // --seed S
-    int fondoEscala = 4; // --fondo-escala E (el fondo se calcula a 1/E y se estira)
-    int framesBench = 0; // --bench F (0 = modo interactivo con vsync)
+    int nodeCount = 0; // N posicional, obligatorio
+    bool parallel = false; // --parallel
+    int threads = 0; // --hilos T (0 = todos los que reporte OpenMP)
+    int sections = 4; // --secciones S
+    int chunk = 32; // --trozo C (bloque de schedule dynamic)
+    float radius = 120.0f; // --radio R (distancia máxima para unir dos nodos)
+    int width = 1280; // --ancho W
+    int height = 720; // --alto H
+    unsigned seed = 42; // --seed S
+    int backgroundScale = 4; // --fondo-escala E (el fondo se calcula a 1/E y se estira)
+    int benchFrames = 0; // --bench F (0 = modo interactivo con vsync)
 };
 
-// Llena salida a partir de argv. Devuelve false si algo es inválido, ya
-// habiendo impreso el error y el uso.
-bool parsearArgumentos(int argc, char** argv, Config& salida);
+// Ok: seguir. Help: se pidió --help, salir con 0. Error: salir con 1.
+enum class ArgsResult { Ok, Help, Error };
 
-void imprimirUso(const char* nombrePrograma);
+// Llena out a partir de argv. Si algo es inválido imprime el motivo y el uso
+// en stderr antes de devolver Error.
+ArgsResult parseArguments(int argc, char** argv, Config& out);
+
+void printUsage(const char* programName);
 
 // Empaqueta los campos de ejecución para pasárselos a los kernels.
-KernelParams aKernelParams(const Config& cfg);
+KernelParams makeKernelParams(const Config& cfg);

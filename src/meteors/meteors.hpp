@@ -5,12 +5,12 @@
 #include "shared/config.hpp"
 #include "shared/rng.hpp"
 
-// Capa 4 — nave que cruza y reaparece cambiando de color. Solo secuencial.
-namespace nave {
+// Capa 3 — estrellas fugaces que cruzan la pantalla. Solo secuencial.
+namespace meteors {
 
 void init(const Config& cfg, Rng& rng);
 void update(float dt);
-void draw(SDL_Renderer* ren);
+void draw(SDL_Renderer* renderer);
 void destroy();
 
-}  // namespace nave
+} // namespace meteors

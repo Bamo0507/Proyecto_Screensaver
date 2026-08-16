@@ -5,12 +5,12 @@
 #include "shared/config.hpp"
 #include "shared/rng.hpp"
 
-// Capa 1 — estrellas de fondo con parpadeo. Solo secuencial.
-namespace estrellas {
+// Capa 4 — nave que cruza y reaparece cambiando de color. Solo secuencial.
+namespace ship {
 
 void init(const Config& cfg, Rng& rng);
 void update(float dt);
-void draw(SDL_Renderer* ren);
+void draw(SDL_Renderer* renderer);
 void destroy();
 
-}  // namespace estrellas
+} // namespace ship

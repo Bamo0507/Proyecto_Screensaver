@@ -7,11 +7,11 @@
 
 // Capa 2 — nodos que rebotan y aristas entre los cercanos.
 // Región paralela A (O(N^2) pares).
-namespace constelacion {
+namespace constellation {
 
 void init(const Config& cfg, Rng& rng);
 void update(float dt);
-void draw(SDL_Renderer* ren);
+void draw(SDL_Renderer* renderer);
 void destroy();
 
-}  // namespace constelacion
+} // namespace constellation

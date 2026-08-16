@@ -3,26 +3,32 @@
 #include <cstdint>
 #include <vector>
 
-struct Nodo;
-struct Arista;
+// Tipos de la constelación. Se declaran adelantados para no depender de
+// constellation.hpp: shared/ no debe conocer a las capas, solo al revés.
+struct Node;
+struct Edge;
 
 // Parámetros de EJECUCIÓN (cómo correr), no de datos (sobre qué correr).
+// Salen del CLI y son iguales para las dos regiones paralelas.
 struct KernelParams {
-    int hilos = 1;   // --hilos: cuántos hilos pide OpenMP
-    int secciones = 4;   // --secciones: en cuántas franjas de filas se parte el fondo
-    int trozo = 32;  // tamaño de chunk para schedule(dynamic, trozo) en aristas
+    int threads = 1; // --hilos: cuántos hilos pide OpenMP
+    int sections = 4; // --secciones: en cuántas franjas de filas se parte el fondo
+    int chunk = 32; // tamaño de bloque para schedule(dynamic, chunk) en aristas
 };
 
-// Escribe ancho*alto pixeles en destino. Escrituras disjuntas, cero sincronía.
-using KernelFondo = void (*)(uint32_t* destino,
-                             int ancho,
-                             int alto,
-                             float tiempo,
-                             const KernelParams& kp);
+// Región B, campo de fondo.
+// Escribe width*height pixeles en target. Escrituras disjuntas, cero sincronía.
+using BackgroundKernel = void (*)(uint32_t* target,
+                                  int width,
+                                  int height,
+                                  float time,
+                                  const KernelParams& params);
 
-// Recorre los pares (i,j) y acumula en salida los que quedan bajo el radio.
-using KernelAristas = void (*)(const Nodo* nodos,
-                               int cantidad,
-                               float radio2,
-                               std::vector<Arista>& salida,
-                               const KernelParams& kp);
+// Región A, detección de aristas.
+// Recorre los pares (i,j) y acumula en out los que quedan bajo el radio.
+// radiusSquared llega ya elevado al cuadrado para evitar sqrt dentro del O(N^2).
+using EdgeKernel = void (*)(const Node* nodes,
+                            int count,
+                            float radiusSquared,
+                            std::vector<Edge>& out,
+                            const KernelParams& params);
