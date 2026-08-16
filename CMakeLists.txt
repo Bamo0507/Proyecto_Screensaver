@@ -34,7 +34,6 @@ add_executable(screensaver
     src/main.cpp
 
     src/shared/config.cpp
-    src/shared/palette.cpp
     src/shared/timing.cpp
 
     src/fondo/fondo.cpp
