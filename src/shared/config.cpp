@@ -128,6 +128,11 @@ bool readSeed(const char* text, unsigned& out) {
 } // namespace
 
 void printUsage(const char* programName) {
+    // Los valores por defecto se leen de un Config recien construido en vez de
+    // escribirse en el texto. Asi cambiar un default en config.hpp no puede
+    // dejar la ayuda diciendo otra cosa.
+    const Config defaults;
+
     std::fprintf(stderr,
         "\nUso: %s N [opciones]\n"
         "\n"
@@ -136,13 +141,13 @@ void printUsage(const char* programName) {
         "Opciones:\n"
         "  --parallel        usa los kernels paralelos en vez de los secuenciales\n"
         "  --hilos T         hilos de OpenMP (%d-%d, por defecto los que reporte el sistema)\n"
-        "  --secciones S     franjas de filas en que se parte el fondo (%d-%d, por defecto 4)\n"
-        "  --trozo C         bloque de schedule(dynamic) en aristas (%d-%d, por defecto 32)\n"
-        "  --radio R         distancia maxima para unir dos nodos (%.1f-%.1f, por defecto 120)\n"
-        "  --ancho W         ancho de la ventana (%d-%d, por defecto 1280)\n"
-        "  --alto H          alto de la ventana (%d-%d, por defecto 720)\n"
-        "  --seed S          semilla del generador (0-%ld, por defecto 42)\n"
-        "  --fondo-escala E  el fondo se calcula a 1/E y se estira (%d-%d, por defecto 4)\n"
+        "  --secciones S     franjas de filas en que se parte el fondo (%d-%d, por defecto %d)\n"
+        "  --trozo C         bloque de schedule(dynamic) en aristas (%d-%d, por defecto %d)\n"
+        "  --radio R         distancia maxima para unir dos nodos (%.1f-%.1f, por defecto %.0f)\n"
+        "  --ancho W         ancho de la ventana (%d-%d, por defecto %d)\n"
+        "  --alto H          alto de la ventana (%d-%d, por defecto %d)\n"
+        "  --seed S          semilla del generador (0-%ld, por defecto %u)\n"
+        "  --fondo-escala E  el fondo se calcula a 1/E y se estira (%d-%d, por defecto %d)\n"
         "  --bench F         corre F frames sin vsync y saca CSV (%d-%d)\n"
         "  --help, -h        muestra esta ayuda\n"
         "\n"
@@ -154,13 +159,13 @@ void printUsage(const char* programName) {
         programName,
         NODES_MIN, NODES_MAX,
         THREADS_MIN, THREADS_MAX,
-        SECTIONS_MIN, SECTIONS_MAX,
-        CHUNK_MIN, CHUNK_MAX,
-        RADIUS_MIN, RADIUS_MAX,
-        WIDTH_MIN, WIDTH_MAX,
-        HEIGHT_MIN, HEIGHT_MAX,
-        SEED_MAX,
-        SCALE_MIN, SCALE_MAX,
+        SECTIONS_MIN, SECTIONS_MAX, defaults.sections,
+        CHUNK_MIN, CHUNK_MAX, defaults.chunk,
+        RADIUS_MIN, RADIUS_MAX, static_cast<double>(defaults.radius),
+        WIDTH_MIN, WIDTH_MAX, defaults.width,
+        HEIGHT_MIN, HEIGHT_MAX, defaults.height,
+        SEED_MAX, defaults.seed,
+        SCALE_MIN, SCALE_MAX, defaults.backgroundScale,
         BENCH_MIN, BENCH_MAX,
         programName, programName, programName);
 }

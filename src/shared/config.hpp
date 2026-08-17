@@ -10,7 +10,7 @@ struct Config {
     int threads = 0; // --hilos T (0 = todos los que reporte OpenMP)
     int sections = 4; // --secciones S
     int chunk = 32; // --trozo C (bloque de schedule dynamic)
-    float radius = 120.0f; // --radio R (distancia máxima para unir dos nodos)
+    float radius = 50.0f; // --radio R (distancia máxima para unir dos nodos)
     int width = 1280; // --ancho W
     int height = 720; // --alto H
     unsigned seed = 42; // --seed S

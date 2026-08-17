@@ -4,6 +4,7 @@
 #include "constellation/constellation.hpp"
 #include "shared/config.hpp"
 #include "shared/rng.hpp"
+#include "ship/ship.hpp"
 
 int main(int argc, char** argv) {
     Config cfg;
@@ -50,6 +51,7 @@ int main(int argc, char** argv) {
     // determinada por --seed y se puede reproducir corrida tras corrida.
     Rng rng = seedGenerator(cfg.seed);
     constellation::init(cfg, rng);
+    ship::init(cfg, rng);
 
     bool running = true;
     long framesDrawn = 0;
@@ -79,13 +81,15 @@ int main(int argc, char** argv) {
         }
 
         constellation::update(dt);
+        ship::update(dt);
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
         // Orden de dibujo de las capas, de atrás hacia adelante.
-        // Faltan background (0), stars (1), meteors (3) y ship (4).
+        // Faltan background (0), stars (1) y meteors (3).
         constellation::draw(renderer); // capa 2
+        ship::draw(renderer);          // capa 4
 
         SDL_RenderPresent(renderer);
 
@@ -96,6 +100,7 @@ int main(int argc, char** argv) {
     }
 
     // Se libera en orden inverso al de creación.
+    ship::destroy();
     constellation::destroy();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
