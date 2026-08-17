@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "shared/palette.hpp"
+#include "shared/timing.hpp"
 
 namespace {
 
@@ -128,8 +129,11 @@ void update(float dt) {
         }
     }
 
-    // Región paralela A. Hoy apunta al kernel secuencial.
+    // Región paralela A. El reloj envuelve solo el kernel: la física de arriba
+    // es O(N) y meterla adentro contaminaria el t_aristas que se reporta.
+    timing::begin(timing::REGION_EDGES);
     edgeKernel(posX.data(), posY.data(), count, radiusSquared, edges, kernelParams);
+    timing::end(timing::REGION_EDGES);
 }
 
 void draw(SDL_Renderer* renderer) {

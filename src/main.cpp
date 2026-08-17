@@ -4,7 +4,38 @@
 #include "constellation/constellation.hpp"
 #include "shared/config.hpp"
 #include "shared/rng.hpp"
+#include "shared/timing.hpp"
 #include "ship/ship.hpp"
+
+namespace {
+
+// SDL_SetWindowTitle habla con el gestor de ventanas: refrescarlo por frame
+// cuesta más que dibujar la escena.
+constexpr double TITLE_INTERVAL = 0.5;
+
+// Techo del dt para que un frame trabado no teletransporte los nodos.
+constexpr float MAX_DT = 0.05f;
+
+void buildTitle(char* out, size_t size, const Config& cfg, double fps) {
+    char threads[32];
+    if (!cfg.parallel) {
+        std::snprintf(threads, sizeof(threads), "-");
+    } else if (cfg.threads == 0) {
+        std::snprintf(threads, sizeof(threads), "auto");
+    } else {
+        std::snprintf(threads, sizeof(threads), "%d", cfg.threads);
+    }
+
+    std::snprintf(out, size,
+                  "Constelacion  |  N=%d  radio=%.0f  |  %s  hilos=%s  |  %.1f FPS",
+                  cfg.nodeCount,
+                  static_cast<double>(cfg.radius),
+                  cfg.parallel ? "paralelo" : "secuencial",
+                  threads,
+                  fps);
+}
+
+} // namespace
 
 int main(int argc, char** argv) {
     Config cfg;
@@ -21,7 +52,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    SDL_Window* window = SDL_CreateWindow("Screensaver - Constelacion",
+    SDL_Window* window = SDL_CreateWindow("Constelacion",
                                           SDL_WINDOWPOS_CENTERED,
                                           SDL_WINDOWPOS_CENTERED,
                                           cfg.width, cfg.height,
@@ -32,8 +63,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Con vsync mientras sea modo interactivo. En --bench se crea sin vsync,
-    // porque con el refresco clavado a 60 FPS todo speedup mediria 1.00x.
+    // En --bench se crea sin vsync: con el refresco clavado a 60 FPS todo
+    // speedup mediria 1.00x.
     Uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
     if (cfg.benchFrames == 0) {
         rendererFlags |= SDL_RENDERER_PRESENTVSYNC;
@@ -47,28 +78,29 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Un solo generador para todas las capas: así la escena completa queda
-    // determinada por --seed y se puede reproducir corrida tras corrida.
+    // Un solo generador para todas las capas: reordenar estas llamadas cambia
+    // la escena aunque la semilla sea la misma.
     Rng rng = seedGenerator(cfg.seed);
+    // TODO: background::init, stars::init, meteors::init
     constellation::init(cfg, rng);
     ship::init(cfg, rng);
+    timing::init(cfg);
 
     bool running = true;
     long framesDrawn = 0;
+    double titleElapsed = 0.0;
 
     const double counterFrequency = static_cast<double>(SDL_GetPerformanceFrequency());
     Uint64 previousCounter = SDL_GetPerformanceCounter();
 
     while (running) {
+        timing::beginFrame();
+
         const Uint64 currentCounter = SDL_GetPerformanceCounter();
         float dt = static_cast<float>((currentCounter - previousCounter) / counterFrequency);
         previousCounter = currentCounter;
-
-        // Un frame que tardó demasiado (la ventana estuvo minimizada, el
-        // sistema se trabó) daría un dt enorme y teletransportaría los nodos al
-        // otro lado de la pantalla, saltándose el rebote. Se le pone techo.
-        if (dt > 0.05f) {
-            dt = 0.05f;
+        if (dt > MAX_DT) {
+            dt = MAX_DT;
         }
 
         SDL_Event event;
@@ -80,28 +112,46 @@ int main(int argc, char** argv) {
             }
         }
 
+        // TODO: background::update, stars::update, meteors::update
         constellation::update(dt);
         ship::update(dt);
 
+        timing::begin(timing::REGION_RENDER);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // Orden de dibujo de las capas, de atrás hacia adelante.
-        // Faltan background (0), stars (1) y meteors (3).
+        // El z-order es el orden de estas lineas, de atras hacia adelante.
+        // TODO: background::draw (capa 0), stars::draw (capa 1)
         constellation::draw(renderer); // capa 2
-        ship::draw(renderer);          // capa 4
+        // TODO: meteors::draw (capa 3)
+        ship::draw(renderer); // capa 4
 
         SDL_RenderPresent(renderer);
+        timing::end(timing::REGION_RENDER);
 
+        timing::endFrame();
         ++framesDrawn;
+
+        titleElapsed += dt;
+        if (titleElapsed >= TITLE_INTERVAL) {
+            char title[160];
+            buildTitle(title, sizeof(title), cfg, timing::smoothedFps());
+            SDL_SetWindowTitle(window, title);
+            titleElapsed = 0.0;
+        }
+
         if (cfg.benchFrames > 0 && framesDrawn >= cfg.benchFrames) {
             running = false;
         }
     }
 
-    // Se libera en orden inverso al de creación.
+    // Las capas van antes que el renderer: sus texturas se crearon a partir de
+    // el. Despues, orden inverso al de creacion.
+    // TODO: meteors::destroy, stars::destroy, background::destroy
+    timing::destroy();
     ship::destroy();
     constellation::destroy();
+
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
