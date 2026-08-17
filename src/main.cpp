@@ -1,7 +1,9 @@
 #include <SDL.h>
 #include <cstdio>
 
+#include "constellation/constellation.hpp"
 #include "shared/config.hpp"
+#include "shared/rng.hpp"
 
 int main(int argc, char** argv) {
     Config cfg;
@@ -44,10 +46,29 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // Un solo generador para todas las capas: así la escena completa queda
+    // determinada por --seed y se puede reproducir corrida tras corrida.
+    Rng rng = seedGenerator(cfg.seed);
+    constellation::init(cfg, rng);
+
     bool running = true;
     long framesDrawn = 0;
 
+    const double counterFrequency = static_cast<double>(SDL_GetPerformanceFrequency());
+    Uint64 previousCounter = SDL_GetPerformanceCounter();
+
     while (running) {
+        const Uint64 currentCounter = SDL_GetPerformanceCounter();
+        float dt = static_cast<float>((currentCounter - previousCounter) / counterFrequency);
+        previousCounter = currentCounter;
+
+        // Un frame que tardó demasiado (la ventana estuvo minimizada, el
+        // sistema se trabó) daría un dt enorme y teletransportaría los nodos al
+        // otro lado de la pantalla, saltándose el rebote. Se le pone techo.
+        if (dt > 0.05f) {
+            dt = 0.05f;
+        }
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -57,10 +78,14 @@ int main(int argc, char** argv) {
             }
         }
 
+        constellation::update(dt);
+
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // Aquí va el orden de dibujo de las 5 capas, de atrás hacia adelante.
+        // Orden de dibujo de las capas, de atrás hacia adelante.
+        // Faltan background (0), stars (1), meteors (3) y ship (4).
+        constellation::draw(renderer); // capa 2
 
         SDL_RenderPresent(renderer);
 
@@ -71,6 +96,7 @@ int main(int argc, char** argv) {
     }
 
     // Se libera en orden inverso al de creación.
+    constellation::destroy();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
