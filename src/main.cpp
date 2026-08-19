@@ -3,6 +3,7 @@
 
 #include "background/background.hpp"
 #include "constellation/constellation.hpp"
+#include "meteors/meteors.hpp"
 #include "shared/config.hpp"
 #include "shared/rng.hpp"
 #include "shared/timing.hpp"
@@ -85,8 +86,8 @@ int main(int argc, char** argv) {
     Rng rng = seedGenerator(cfg.seed);
     background::init(cfg, rng);
     stars::init(cfg, rng);
-    // TODO: meteors::init
     constellation::init(cfg, rng);
+    meteors::init(cfg, rng);
     ship::init(cfg, rng);
     timing::init(cfg);
 
@@ -118,8 +119,8 @@ int main(int argc, char** argv) {
 
         background::update(dt);
         stars::update(dt);
-        // TODO: meteors::update
         constellation::update(dt);
+        meteors::update(dt);
         ship::update(dt);
 
         timing::begin(timing::REGION_RENDER);
@@ -130,7 +131,7 @@ int main(int argc, char** argv) {
         background::draw(renderer); // capa 0
         stars::draw(renderer); // capa 1
         constellation::draw(renderer); // capa 2
-        // TODO: meteors::draw (capa 3)
+        meteors::draw(renderer); // capa 3
         ship::draw(renderer); // capa 4
 
         SDL_RenderPresent(renderer);
@@ -154,9 +155,9 @@ int main(int argc, char** argv) {
 
     // Las capas van antes que el renderer: sus texturas se crearon a partir de
     // el. Despues, orden inverso al de creacion.
-    // TODO: meteors::destroy
     timing::destroy();
     ship::destroy();
+    meteors::destroy();
     constellation::destroy();
     stars::destroy();
     background::destroy();
