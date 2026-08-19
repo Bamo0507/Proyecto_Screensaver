@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <cstdio>
 
+#include "background/background.hpp"
 #include "constellation/constellation.hpp"
 #include "shared/config.hpp"
 #include "shared/rng.hpp"
@@ -81,7 +82,8 @@ int main(int argc, char** argv) {
     // Un solo generador para todas las capas: reordenar estas llamadas cambia
     // la escena aunque la semilla sea la misma.
     Rng rng = seedGenerator(cfg.seed);
-    // TODO: background::init, stars::init, meteors::init
+    background::init(cfg, rng);
+    // TODO: stars::init, meteors::init
     constellation::init(cfg, rng);
     ship::init(cfg, rng);
     timing::init(cfg);
@@ -112,7 +114,8 @@ int main(int argc, char** argv) {
             }
         }
 
-        // TODO: background::update, stars::update, meteors::update
+        background::update(dt);
+        // TODO: stars::update, meteors::update
         constellation::update(dt);
         ship::update(dt);
 
@@ -121,7 +124,8 @@ int main(int argc, char** argv) {
         SDL_RenderClear(renderer);
 
         // El z-order es el orden de estas lineas, de atras hacia adelante.
-        // TODO: background::draw (capa 0), stars::draw (capa 1)
+        background::draw(renderer); // capa 0
+        // TODO: stars::draw (capa 1)
         constellation::draw(renderer); // capa 2
         // TODO: meteors::draw (capa 3)
         ship::draw(renderer); // capa 4
@@ -147,10 +151,11 @@ int main(int argc, char** argv) {
 
     // Las capas van antes que el renderer: sus texturas se crearon a partir de
     // el. Despues, orden inverso al de creacion.
-    // TODO: meteors::destroy, stars::destroy, background::destroy
+    // TODO: meteors::destroy, stars::destroy
     timing::destroy();
     ship::destroy();
     constellation::destroy();
+    background::destroy();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
